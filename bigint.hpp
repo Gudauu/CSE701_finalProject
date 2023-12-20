@@ -62,12 +62,21 @@ bigint::bigint(int64_t number)
 
 bigint::bigint(const string& str)
 {
+    size_t len = str.size();
+    if(!len){   // empty string
+        bigint();
+        return;
+    }
+    // deal with first char separately due to possible sign and zero start
+    size_t i = 0;
     if(str[0] == '0')
         throw zero_initializing_string;
-    if(str[0] == '-')
+    if(str[0] == '-'){
         sign = -1;
-    size_t len = str.size();
-    for(size_t i = 1; i < len; i++){
+        i++;
+    }
+    // deal with rest of the string
+    for(;i < len; i++){
         char ch = str[i];
         if(ch < '0' || ch > '9')
             throw invalid_initializing_string;
