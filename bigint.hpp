@@ -14,6 +14,8 @@ class bigint
 private:
     vector<uint8_t>digits;
     int8_t sign = 1;
+    bigint& add(const bigint&);
+    bigint& minus(const bigint&);
     // Exception to be thrown if.
     inline static invalid_argument invalid_initializing_string = invalid_argument("Initializing string should contain digits only!");
     inline static invalid_argument zero_initializing_string = invalid_argument("Initializing string should not start with zero!");
@@ -83,6 +85,83 @@ bigint::bigint(const string& str)
         else    
             digits.push_back(ch - '0');
     }
+}
+
+// add: for addition of same sign. No modification to sign.
+bigint& bigint::add(const bigint& rhs){
+    const vector<uint8_t>& digits_rhs = rhs.digits;
+    size_t len_l = digits.size();
+    size_t len_r = digits_rhs.size();
+    size_t i = 0;
+    bool carry = false;
+    for(; i < std::min(len_l, len_r);i++){
+        uint8_t sum_new = digits[i] + digits_rhs[i] + carry;
+        digits[i] = sum_new%10;
+        carry = (sum_new >= 10);
+    }
+    // the left over parts
+    for(; i < len_l;i++){
+        uint8_t sum_new = digits[i] + carry;
+        digits[i] = sum_new%10;
+        carry = (sum_new >= 10);
+    }
+    for(; i < len_r;i++){
+        uint8_t sum_new = digits_rhs[i] + carry;
+        digits.push_back(sum_new%10);
+        carry = (sum_new >= 10);
+    }
+    if(carry)
+        digits.push_back(1);
+    return *this;
+}
+
+// minus: for minus of two non-negative. Larger - smaller.
+bigint& bigint::minus(const bigint& rhs){
+    const vector<uint8_t>& digits_rhs = rhs.digits;
+    size_t len_l = digits.size();
+    size_t len_r = digits_rhs.size();
+    size_t i = 0;
+    bool carry = false;
+    for(; i < std::min(len_l, len_r);i++){
+        uint8_t sum_new = digits[i] + 10 - digits_rhs[i] - carry;
+        digits[i] = sum_new%10;
+        carry = (sum_new < 10);
+    }
+    // the left over parts
+    for(; i < len_l;i++){
+        uint8_t sum_new = digits[i] + 10 - carry;
+        digits[i] = sum_new%10; 
+        carry = (sum_new < 10);
+    }
+    return *this;
+}
+
+bigint& bigint::operator+=(const bigint& rhs){
+    if(sign*rhs.sign == 1)
+        return add(rhs);
+    else if(sign == 1){
+        if(*this >= -rhs)
+            return minus(-rhs);
+        else{
+            bigint temp = -rhs;
+            temp.minus(*this);
+            *this = -temp;
+        }   
+    }else{
+        if(-(*this) >= rhs){
+            bigint temp = -(*this);
+            temp.minus(rhs);
+            *this = -temp;
+        }else{
+            bigint temp = rhs;
+            temp.minus(-(*this));
+            *this = temp;
+        }
+    }
+}
+
+bigint& bigint::operator-=(const bigint& rhs){
+    return *this += (-rhs);
 }
 
 
