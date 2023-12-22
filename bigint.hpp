@@ -196,16 +196,18 @@ bigint& bigint::operator*=(const bigint& rhs){
     size_t len_l = digits.size();
     size_t len_r = digits_rhs.size();
     size_t i = 0;
-    uint8_t carry = 0;
+    uint8_t carry;
     bigint digits_sum;
     for(size_t i = 0;i < len_l;i++){
         bigint product;
-        product.digits = vector<uint8_t>(i, 0);
+        product.setDigits(vector<uint8_t>(i, 0));
+        carry = 0;
         for(size_t j = 0;j < len_r;j++){
             uint8_t product_digit = digits[i]*digits_rhs[j] + carry;
             product.digits.push_back(product_digit%10);
             carry = product_digit/10;
         }
+        if(carry)product.digits.push_back(carry);
         digits_sum += product;
     }
     digits = digits_sum.digits;
@@ -218,14 +220,6 @@ void bigint::removeZeroAtStart(){
         digits.pop_back();
     if(!digits.size())
         digits.push_back(0);
-    // size_t len = digits.size();
-    // size_t i = len - 1;
-    // for(;i && digits[i] == 0;i--);
-    // vector<uint8_t>digits_new;
-    // for(;i;i--)
-    //     digits_new.push_back(digits[i]);
-    // digits_new.push_back(digits[0]);
-    // setDigits(digits_new);
 }
 
 int8_t bigint::getSign() const{

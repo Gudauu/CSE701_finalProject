@@ -18,7 +18,7 @@ int main()
 {
     bigint A;
     int64_t v1 = 5; bigint B(v1);
-    // string strTest = "100000000000000000000000000000000"; bigint C(strTest);
+    string strTest = "100000000000000000000000000000000"; bigint C(strTest);
     int64_t v2 = -12; bigint D(v2);
 
     // cout << "A: " << A;
@@ -42,7 +42,7 @@ int main()
     cout << "A: " << A;
     cout << "B: " << B;
     cout << "A - B: " << A - B;
-    cout << "A * B: " << A * B;
+    cout << "-1932138 * -111119: " << bigint("-1932138") * bigint(-111119);
     // A += B;
     // cout << "A: " << D;
 
