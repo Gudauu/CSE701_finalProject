@@ -16,6 +16,7 @@ private:
     int8_t sign = 1;
     bigint& add(const bigint&);
     bigint& minus(const bigint&);
+    void removeZeroAtStart();
     // Exception to be thrown if.
     inline static invalid_argument invalid_initializing_string = invalid_argument("Initializing string should contain digits only!");
     inline static invalid_argument zero_initializing_string = invalid_argument("Initializing string should not start with zero!");
@@ -87,6 +88,11 @@ bigint::bigint(const string& str)
     }
 }
 
+bigint& bigint::operator=(const bigint& rhs){
+    sign = rhs.sign;
+    digits = rhs.digits;
+    return *this;
+}
 // add: for addition of same sign. No modification to sign.
 bigint& bigint::add(const bigint& rhs){
     const vector<uint8_t>& digits_rhs = rhs.digits;
@@ -133,6 +139,7 @@ bigint& bigint::minus(const bigint& rhs){
         digits[i] = sum_new%10; 
         carry = (sum_new < 10);
     }
+    removeZeroAtStart();
     return *this;
 }
 
@@ -158,12 +165,46 @@ bigint& bigint::operator+=(const bigint& rhs){
             *this = temp;
         }
     }
+    return *this;
 }
 
 bigint& bigint::operator-=(const bigint& rhs){
     return *this += (-rhs);
 }
 
+bigint& bigint::operator*=(const bigint& rhs){
+    if(rhs.sign == -1)
+        sign = (sign == 1)?-1:1;
+    const vector<uint8_t>& digits_rhs = rhs.digits;
+    size_t len_l = digits.size();
+    size_t len_r = digits_rhs.size();
+    size_t i = 0;
+    uint8_t carry = 0;
+    bigint digits_sum;
+    for(size_t i = 0;i < len_l;i++){
+        bigint product;
+        product.digits = vector<uint8_t>(i, 0);
+        for(size_t j = 0;j < len_r;j++){
+            uint8_t product_digit = digits[i]*digits_rhs[j] + carry;
+            product.digits.push_back(product_digit%10);
+            carry = product_digit/10;
+        }
+        digits_sum += product;
+    }
+    digits = digits_sum.digits;
+    return *this;
+}
 
 
+void bigint::removeZeroAtStart(){
+    size_t len = digits.size();
+    size_t i = 0;
+    for(;i < len && digits[i] == 0;i++);
+    vector<uint8_t>digits_new;
+    for(;i < len;i++)
+        digits_new.push_back(digits[i]);
+    digits = digits_new;
+    if(!digits.size())
+        digits.push_back(0);
+}
 
