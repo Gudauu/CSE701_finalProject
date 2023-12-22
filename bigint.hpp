@@ -14,6 +14,9 @@ class bigint
 private:
     vector<uint8_t>digits;
     int8_t sign = 1;
+    void setDigits(const vector<uint8_t>&);
+    void setSign(const int8_t&);
+    
     bigint& add(const bigint&);
     bigint& minus(const bigint&);
     void removeZeroAtStart();
@@ -21,6 +24,7 @@ private:
     inline static invalid_argument invalid_initializing_string = invalid_argument("Initializing string should contain digits only!");
     inline static invalid_argument zero_initializing_string = invalid_argument("Initializing string should not start with zero!");
 public:
+    /* required functions */
     bigint();
     bigint(int64_t);
     bigint(const string&);
@@ -28,6 +32,11 @@ public:
     bigint& operator-=(const bigint&);
     bigint& operator*=(const bigint&);
     bigint& operator=(const bigint&);
+    /* auxilliary functions */
+    void negate();
+    int8_t getSign() const;
+    vector<uint8_t> getDigits() const;
+    
     
 };
 
@@ -51,12 +60,12 @@ ostream& operator<<(ostream&, const bigint&);
 
 bigint::bigint()
 {
-    digits = {};
+    setDigits({});
 }
 
 bigint::bigint(int64_t number)
 {
-    sign = (number > 0)? 1 : -1;
+    setSign((number > 0)? 1 : -1);
     while(number){
         digits.push_back(number%10);
         number /= 10;
@@ -75,7 +84,7 @@ bigint::bigint(const string& str)
     if(str[0] == '0')
         throw zero_initializing_string;
     if(str[0] == '-'){
-        sign = -1;
+        setSign(-1); 
         i++;
     }
     // deal with rest of the string
@@ -165,6 +174,9 @@ bigint& bigint::operator+=(const bigint& rhs){
             *this = temp;
         }
     }
+    // if zero, set sign to 1
+    if(digits[0] == 0)
+        setSign(1);
     return *this;
 }
 
@@ -174,7 +186,7 @@ bigint& bigint::operator-=(const bigint& rhs){
 
 bigint& bigint::operator*=(const bigint& rhs){
     if(rhs.sign == -1)
-        sign = (sign == 1)?-1:1;
+        negate();
     const vector<uint8_t>& digits_rhs = rhs.digits;
     size_t len_l = digits.size();
     size_t len_r = digits_rhs.size();
@@ -203,8 +215,120 @@ void bigint::removeZeroAtStart(){
     vector<uint8_t>digits_new;
     for(;i < len;i++)
         digits_new.push_back(digits[i]);
-    digits = digits_new;
-    if(!digits.size())
-        digits.push_back(0);
+    if(!digits_new.size())
+        digits_new.push_back(0);
+    setDigits(digits_new);
 }
+
+int8_t bigint::getSign() const{
+    return sign;
+}
+vector<uint8_t> bigint::getDigits() const{
+    return digits;
+}
+
+void bigint::setDigits(const vector<uint8_t>& opr){
+    digits = opr;
+}
+void bigint::setSign(const int8_t& new_sign){
+    sign = new_sign;
+
+}
+void bigint::negate(){
+    sign *= -1;
+}
+
+bigint operator-(const bigint& opr){
+    bigint result = opr;
+    result.negate();
+    return result;
+}
+bigint operator+(bigint lhs, const bigint& rhs){
+    return (lhs += rhs);
+}
+bigint operator-(bigint lhs, const bigint& rhs){
+    return (lhs -= rhs);
+}
+bigint operator*(bigint lhs, const bigint& rhs){
+    return (lhs *= rhs);
+}
+
+bool operator==(const bigint& lhs, const bigint& rhs){
+    if(lhs.getSign() != rhs.getSign())
+        return false;
+    vector<uint8_t>digits_lhs = lhs.getDigits();
+    vector<uint8_t>digits_rhs = rhs.getDigits();
+    size_t len_l = digits_lhs.size();
+    if(len_l != digits_rhs.size())
+        return false;
+    size_t i;
+    for(i = 0;i < len_l && digits_lhs[i] == digits_rhs[i];i++);
+    return i == len_l;
+}
+
+bool operator!=(const bigint& lhs, const bigint& rhs){
+    return !(lhs == rhs);
+}
+bool operator<(const bigint& lhs, const bigint& rhs){
+    if(lhs.getSign() < rhs.getSign())
+        return true;
+    if(lhs.getSign() > rhs.getSign())
+        return false;
+    vector<uint8_t>digits_lhs = lhs.getDigits();
+    vector<uint8_t>digits_rhs = rhs.getDigits();
+    size_t len_l = digits_lhs.size();
+    size_t len_r = digits_rhs.size();
+    bool isPos = (lhs.getSign() == 1);
+
+    if(len_l == len_r){
+        size_t i;
+        for(i = 0;i < len_l && digits_lhs[i] == digits_rhs[i];i++);
+        if(i == len_l)
+            return false;
+        return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
+    }
+    bool isShorter = len_l < len_r;
+    return (isShorter && isPos) || !(isShorter || isPos);
+}
+bool operator<=(const bigint& lhs, const bigint& rhs){
+    if(lhs.getSign() < rhs.getSign())
+        return true;
+    if(lhs.getSign() > rhs.getSign())
+        return false;
+    vector<uint8_t>digits_lhs = lhs.getDigits();
+    vector<uint8_t>digits_rhs = rhs.getDigits();
+    size_t len_l = digits_lhs.size();
+    size_t len_r = digits_rhs.size();
+    bool isPos = (lhs.getSign() == 1);
+
+    if(len_l == len_r){
+        size_t i;
+        for(i = 0;i < len_l && digits_lhs[i] == digits_rhs[i];i++);
+        if(i == len_l)
+            return true;
+        return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
+    }
+    bool isShorter = len_l < len_r;
+    return (isShorter && isPos) || !(isShorter || isPos);
+}
+bool operator>(const bigint& lhs, const bigint& rhs){
+    return !(lhs <= rhs);
+}
+bool operator>=(const bigint& lhs, const bigint& rhs){
+    return !(lhs < rhs);
+}
+
+
+ostream& operator<<(ostream& out, const bigint& bigi){
+    vector<uint8_t>digits = bigi.getDigits();
+    size_t len = digits.size();
+    for (size_t i = 0; i < len; i++)
+    {
+        out << "( ";
+        out << digits[i] << '\t';
+        out << ")\n";
+    }
+    return out;
+}
+
 
