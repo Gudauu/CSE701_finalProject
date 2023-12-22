@@ -66,9 +66,10 @@ bigint::bigint()
 
 bigint::bigint(int64_t number)
 {
-    setSign((number > 0)? 1 : -1);
+    int64_t new_sign = (number > 0)? 1 : -1;
+    setSign(new_sign);
     while(number){
-        digits.push_back(number%10);
+        digits.push_back(new_sign*(number%10));
         number /= 10;
     }
 }
@@ -82,12 +83,12 @@ bigint::bigint(const string& str)
     }
     // deal with first char separately due to possible sign and zero start
     size_t i = 0;
-    if(str[0] == '0')
-        throw zero_initializing_string;
     if(str[0] == '-'){
         setSign(-1); 
         i++;
     }
+    if(str[i] == '0')
+        throw zero_initializing_string;
     vector<uint8_t>digits_new;
     // deal with rest of the string
     for(;i < len; i++){
@@ -213,15 +214,18 @@ bigint& bigint::operator*=(const bigint& rhs){
 
 
 void bigint::removeZeroAtStart(){
-    size_t len = digits.size();
-    size_t i = 0;
-    for(;i < len && digits[i] == 0;i++);
-    vector<uint8_t>digits_new;
-    for(;i < len;i++)
-        digits_new.push_back(digits[i]);
-    if(!digits_new.size())
-        digits_new.push_back(0);
-    setDigits(digits_new);
+    while(digits.back() == 0)
+        digits.pop_back();
+    if(!digits.size())
+        digits.push_back(0);
+    // size_t len = digits.size();
+    // size_t i = len - 1;
+    // for(;i && digits[i] == 0;i--);
+    // vector<uint8_t>digits_new;
+    // for(;i;i--)
+    //     digits_new.push_back(digits[i]);
+    // digits_new.push_back(digits[0]);
+    // setDigits(digits_new);
 }
 
 int8_t bigint::getSign() const{
