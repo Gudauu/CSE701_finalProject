@@ -8,51 +8,191 @@ using std::ostream;
 using std::string;
 using std::vector;
 
-/** declaration starts **/
-
+/** @brief Class representing an arbitrary-precision integer. */
 class bigint
 {
 private:
+    /** @brief Vector of digits representing the bigint in base 10. */
     vector<uint8_t> digits;
-    int8_t sign = 1;
-    void setDigits(const vector<uint8_t> &);
-    void setSign(const int8_t &);
 
-    bigint &add(const bigint &);
-    bigint &minus(const bigint &);
+    /** @brief Sign of the bigint, 1 for positive, -1 for negative. */
+    int8_t sign = 1;
+
+    /** @brief Sets the digits of the bigint.
+     *  @param opr Vector of uint8_t representing the digits.
+     */
+    void setDigits(const vector<uint8_t> &opr);
+
+    /** @brief Sets the sign of the bigint.
+     *  @param new_sign The new sign value.
+     */
+    void setSign(const int8_t &new_sign);
+
+    /** @brief Adds another bigint to the current bigint, assuming both have the same sign.
+     *  @param rhs The bigint to be added.
+     *  @return Reference to the current bigint after addition.
+     */
+    bigint &add(const bigint &rhs);
+
+    /** @brief Subtracts another bigint from the current bigint, assuming both are non-negative and the current bigint is larger.
+     *  @param rhs The bigint to be subtracted.
+     *  @return Reference to the current bigint after subtraction.
+     */
+    bigint &minus(const bigint &rhs);
+
+    /** @brief Removes leading zeros from the bigint representation. */
     void removeZeroAtStart();
-    // Exception to be thrown if.
+
+    /** @brief Exception for invalid string initialization. */
     inline static invalid_argument invalid_initializing_string = invalid_argument("Initializing string should contain digits only!");
+
+    /** @brief Exception for string initialization starting with zero. */
     inline static invalid_argument zero_initializing_string = invalid_argument("Initializing string should not start with zero!");
 
 public:
-    /* required functions */
+    /** @brief Constructs a new bigint initialized to zero. */
     bigint();
-    bigint(int64_t);
-    bigint(const string &);
-    bigint &operator+=(const bigint &);
-    bigint &operator-=(const bigint &);
-    bigint &operator*=(const bigint &);
-    bigint &operator=(const bigint &);
-    /* auxiliary functions */
+
+    /** @brief Constructs a bigint from an int64_t.
+     *  @param number The int64_t value to initialize from.
+     */
+    bigint(int64_t number);
+
+    /** @brief Constructs a bigint from a string.
+     *  @param str The string to initialize from.
+     */
+    bigint(const string &str);
+
+    /** @brief Assigns a bigint to the current bigint.
+     *  @param rhs The bigint to assign from.
+     *  @return Reference to the current bigint after assignment.
+     */
+    bigint &operator=(const bigint &rhs);
+
+    /** @brief Adds a bigint to the current bigint.
+     *  @param rhs The bigint to add.
+     *  @return Reference to the current bigint after addition.
+     */
+    bigint &operator+=(const bigint &rhs);
+
+    /** @brief Subtracts a bigint from the current bigint.
+     *  @param rhs The bigint to subtract.
+     *  @return Reference to the current bigint after subtraction.
+     */
+    bigint &operator-=(const bigint &rhs);
+
+    /** @brief Multiplies a bigint with the current bigint.
+     *  @param rhs The bigint to multiply with.
+     *  @return Reference to the current bigint after multiplication.
+     */
+    bigint &operator*=(const bigint &rhs);
+
+    /** @brief Negates the current bigint. */
     void negate();
+
+    /** @brief Gets the sign of the bigint.
+     *  @return The sign of the bigint.
+     */
     int8_t getSign() const;
+
+    /** @brief Gets the digits of the bigint.
+     *  @return Vector of digits of the bigint.
+     */
     vector<uint8_t> getDigits() const;
 };
 
-bigint operator-(const bigint &);
-bigint operator+(bigint, const bigint &);
-bigint operator-(bigint, const bigint &);
-bigint operator*(bigint, const bigint &);
+// Operator overloads and other functions would also have similar Doxygen comments.
 
-bool operator==(const bigint &, const bigint &);
-bool operator!=(const bigint &, const bigint &);
-bool operator<(const bigint &, const bigint &);
-bool operator<=(const bigint &, const bigint &);
-bool operator>(const bigint &, const bigint &);
-bool operator>=(const bigint &, const bigint &);
+// Implementation details would have inline comments explaining complex logic or important steps.
 
-ostream &operator<<(ostream &, const bigint &);
+
+/**
+ * @brief Negates a bigint.
+ * @param opr The bigint to negate.
+ * @return The negated bigint.
+ */
+bigint operator-(const bigint &opr);
+
+/**
+ * @brief Adds two bigint numbers.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return The sum of lhs and rhs.
+ */
+bigint operator+(bigint lhs, const bigint &rhs);
+
+/**
+ * @brief Subtracts one bigint from another.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint to subtract from lhs.
+ * @return The difference of lhs and rhs.
+ */
+bigint operator-(bigint lhs, const bigint &rhs);
+
+/**
+ * @brief Multiplies two bigint numbers.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return The product of lhs and rhs.
+ */
+bigint operator*(bigint lhs, const bigint &rhs);
+
+/**
+ * @brief Compares two bigint numbers for equality.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return True if lhs is equal to rhs, false otherwise.
+ */
+bool operator==(const bigint &lhs, const bigint &rhs);
+
+/**
+ * @brief Compares two bigint numbers for inequality.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return True if lhs is not equal to rhs, false otherwise.
+ */
+bool operator!=(const bigint &lhs, const bigint &rhs);
+
+/**
+ * @brief Checks if one bigint is less than another.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return True if lhs is less than rhs, false otherwise.
+ */
+bool operator<(const bigint &lhs, const bigint &rhs);
+
+/**
+ * @brief Checks if one bigint is less than or equal to another.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return True if lhs is less than or equal to rhs, false otherwise.
+ */
+bool operator<=(const bigint &lhs, const bigint &rhs);
+
+/**
+ * @brief Checks if one bigint is greater than another.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return True if lhs is greater than rhs, false otherwise.
+ */
+bool operator>(const bigint &lhs, const bigint &rhs);
+
+/**
+ * @brief Checks if one bigint is greater than or equal to another.
+ * @param lhs The left-hand side bigint.
+ * @param rhs The right-hand side bigint.
+ * @return True if lhs is greater than or equal to rhs, false otherwise.
+ */
+bool operator>=(const bigint &lhs, const bigint &rhs);
+
+/**
+ * @brief Overload the ostream operator for bigint.
+ * @param out The output stream.
+ * @param opr The bigint to be streamed.
+ * @return The updated output stream containing the bigint representation.
+ */
+ostream &operator<<(ostream &out, const bigint &opr);
+
 
 /** implementation starts **/
 
