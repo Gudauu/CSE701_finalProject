@@ -8,23 +8,42 @@
  * @copyright Copyright (c) 2023
  * 
  */
-
 #include <iostream>
-using namespace std;
+#include "bigint.hpp"
 
-/**
- * @brief 
- * 
- * @param a 
- * @param b 
- * @return double 
- */
-double add(const double &a, const double &b)
-{
-    return a + b;
-}
+
+using std::cout;
 
 int main()
 {
-    cout << add(1, 2);
+    bigint A;
+    int64_t v1 = 23; bigint B(v1);
+    string strTest = "100000000000000000000000000000000"; bigint C(strTest);
+    int64_t v2 = -1234567890; bigint D(v2);
+
+    cout << "A: " << A;
+    cout << "B: " << B;
+    cout << "C: " << C;
+    cout << "D: " << D;
+    try{
+        string v3 = "-0000"; bigint E(v3);
+        cout << "E: " << E;
+    }catch(invalid_argument e){
+        cout << e.what() << '\n';
+    }
+    try{
+        string v4 = "20700&0"; bigint F(v4);
+        cout << "F: " << F;
+    }catch(invalid_argument e){
+        cout << e.what() << '\n';
+    }
+    A = 12; B = 1;
+
+    cout << "A: " << A;
+    cout << "B: " << B;
+    cout << "A + B: " << A + B;
+    A += B;
+    cout << "A: " << D;
+
+
 }

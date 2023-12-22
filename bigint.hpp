@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include <vector>
+#include "icecream.hpp"
 
 using std::vector;
 using std::string;
@@ -60,7 +61,7 @@ ostream& operator<<(ostream&, const bigint&);
 
 bigint::bigint()
 {
-    setDigits({});
+    setDigits({0});
 }
 
 bigint::bigint(int64_t number)
@@ -87,14 +88,17 @@ bigint::bigint(const string& str)
         setSign(-1); 
         i++;
     }
+    vector<uint8_t>digits_new;
     // deal with rest of the string
     for(;i < len; i++){
         char ch = str[i];
         if(ch < '0' || ch > '9')
             throw invalid_initializing_string;
         else    
-            digits.push_back(ch - '0');
+            digits_new.push_back(ch - '0');
     }
+    std::reverse(digits_new.begin(), digits_new.end());
+    setDigits(digits_new);
 }
 
 bigint& bigint::operator=(const bigint& rhs){
@@ -321,13 +325,13 @@ bool operator>=(const bigint& lhs, const bigint& rhs){
 
 ostream& operator<<(ostream& out, const bigint& bigi){
     vector<uint8_t>digits = bigi.getDigits();
+    if(bigi.getSign() == -1)
+        out << '-';
     size_t len = digits.size();
-    for (size_t i = 0; i < len; i++)
-    {
-        out << "( ";
-        out << digits[i] << '\t';
-        out << ")\n";
-    }
+    // for (size_t i = 0; i < len; i++)
+    for (int64_t i = (len - 1); i >= 0; i--)
+        out << static_cast<int>(digits[i]);
+    out << '\n';
     return out;
 }
 
