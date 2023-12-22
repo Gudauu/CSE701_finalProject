@@ -56,11 +56,20 @@ ostream &operator<<(ostream &, const bigint &);
 
 /** implementation starts **/
 
+/**
+ * @brief Construct a new bigint::bigint object
+ * 
+ */
 bigint::bigint()
 {
     setDigits({0});
 }
 
+/**
+ * @brief Construct a new bigint::bigint object
+ * 
+ * @param number The int64_t value to be converted 
+ */
 bigint::bigint(int64_t number)
 {
     int64_t new_sign = (number > 0) ? 1 : -1;
@@ -72,6 +81,11 @@ bigint::bigint(int64_t number)
     }
 }
 
+/**
+ * @brief Construct a new bigint::bigint object
+ * 
+ * @param str The string value to be converted 
+ */
 bigint::bigint(const string &str)
 {
     size_t len = str.size();
@@ -103,6 +117,12 @@ bigint::bigint(const string &str)
     setDigits(digits_new);
 }
 
+/**
+ * @brief 
+ * 
+ * @param rhs 
+ * @return bigint& 
+ */
 bigint &bigint::operator=(const bigint &rhs)
 {
     sign = rhs.sign;
@@ -319,8 +339,7 @@ bool operator<(const bigint &lhs, const bigint &rhs)
     if (len_l == len_r)
     {
         size_t i;
-        for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++)
-            ;
+        for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++);
         if (i == len_l)
             return false;
         return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
@@ -343,8 +362,7 @@ bool operator<=(const bigint &lhs, const bigint &rhs)
     if (len_l == len_r)
     {
         size_t i;
-        for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++)
-            ;
+        for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++);
         if (i == len_l)
             return true;
         return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
@@ -369,7 +387,7 @@ ostream &operator<<(ostream &out, const bigint &opr)
     size_t len = digits.size();
     // for (size_t i = 0; i < len; i++)
     for (int64_t i = (len - 1); i >= 0; i--)
-        out << static_cast<int>(digits[i]);
+        out << static_cast<int64_t>(digits[i]);
     out << '\n';
     return out;
 }

@@ -16,11 +16,12 @@ using std::cout;
 
 int main()
 {
+    /* demonstrate constructors */
     bigint A;
     int64_t v1 = 5;
     bigint B(v1);
-    string strTest = "100000000000000000000000000000000";
-    bigint C(strTest);
+    string str1 = "100000000000000000000000000000000";
+    bigint C(str1);
     int64_t v2 = -12;
     bigint D(v2);
 
@@ -48,17 +49,24 @@ int main()
     {
         cout << e.what() << '\n';
     }
-    A += B;      // 5
-    B = (A + D); // -7
-    cout << "A: " << A;
-    cout << "B: " << B;
-    cout << "A - B: " << A - B;
+
+    /* demonstrate operators */
+
     cout << "-1932138 * -111119: " << bigint("-1932138") * bigint(-111119);
+    cout << "A += B: " << (A += B);
+    cout << "A -= B: " << (A -= B);
+    cout << "A + B: " << (A + B);
+    cout << "A - B: " << (A - B);
+    cout << "A *= B: " << (A *= B);
+    cout << "A * B: " << (A * B);
+    cout << "B = A: " << (B = A) << '\n';
     cout << "A == B: " << (A == B) << '\n';
-    cout << "A > B: " << (A >= B) << '\n';
-    B = bigint(-5);
+    cout << "A != B: " << (A != B) << '\n';
+    cout << "A > B: " << (A > B) << '\n';
+    cout << "A < B: " << (A < B) << '\n';
     cout << "A == -B: " << (A == -B) << '\n';
     cout << "A <= -B: " << (A <= -B) << '\n';
+    cout << "A >= -B: " << (A >= -B) << '\n';
 
     // A += B;
     // cout << "A: " << D;
