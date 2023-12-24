@@ -402,7 +402,7 @@ bigint operator*(bigint lhs, const bigint &rhs)
 
 bool operator==(const bigint &lhs, const bigint &rhs)
 {
-    // First, compare the signs. If they are different, bigints are not equal.
+    // First, compare the signs. If they are different, bigint are not equal.
     // 0 always has sign value 1 (invariant)
     if (lhs.getSign() != rhs.getSign())
         return false;
@@ -420,7 +420,7 @@ bool operator==(const bigint &lhs, const bigint &rhs)
             return false;
     }
 
-    // If all checks pass, the bigints are equal.
+    // If all checks pass, the bigint are equal.
     return true;
 }
 
