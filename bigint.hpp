@@ -1,3 +1,13 @@
+/**
+ * @file bigint.hpp
+ * @author {Eva Wu} ({gudautd@gmail.com})
+ * @brief Header file and implementation of arbitrary precision integer class 'bigint'
+ * @version 0.1
+ * @date 2023-12-23
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <iostream>
 #include <cstdint>
 #include <vector>
@@ -220,12 +230,15 @@ bigint::bigint(const string &str)
         return;
     }
     // deal with first char separately due to possible sign and zero start
+    // i: records the index in string we are on 
     size_t i = 0;
+    // negative sign, move forward one 
     if (str[0] == '-')
     {
         setSign(-1);
         i++;
     }
+    // if the first digit is 0, throw invalid
     if (str[i] == '0')
         throw zero_initializing_string;
     vector<uint8_t> digits_new;
