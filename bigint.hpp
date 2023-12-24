@@ -95,16 +95,13 @@ public:
      */
     int8_t getSign() const;
 
-    /** @brief Gets the digits of the bigint.
+    /** @brief Gets the digits of the bigint in vector<uint8_t> form.
      *  @return Vector of digits of the bigint.
      */
     vector<uint8_t> getDigits() const;
 };
 
-// Operator overloads and other functions would also have similar Doxygen comments.
-
-// Implementation details would have inline comments explaining complex logic or important steps.
-
+// Implementation details have inline comments explaining complex logic or important steps.
 
 /**
  * @brief Negates a bigint.
@@ -196,20 +193,13 @@ ostream &operator<<(ostream &out, const bigint &opr);
 
 /** implementation starts **/
 
-/**
- * @brief Construct a new bigint::bigint object
- * 
- */
+
 bigint::bigint()
 {
     setDigits({0});
 }
 
-/**
- * @brief Construct a new bigint::bigint object
- * 
- * @param number The int64_t value to be converted 
- */
+
 bigint::bigint(int64_t number)
 {
     int64_t new_sign = (number > 0) ? 1 : -1;
@@ -221,11 +211,6 @@ bigint::bigint(int64_t number)
     }
 }
 
-/**
- * @brief Construct a new bigint::bigint object
- * 
- * @param str The string value to be converted 
- */
 bigint::bigint(const string &str)
 {
     size_t len = str.size();
@@ -257,33 +242,31 @@ bigint::bigint(const string &str)
     setDigits(digits_new);
 }
 
-/**
- * @brief 
- * 
- * @param rhs 
- * @return bigint& 
- */
+
 bigint &bigint::operator=(const bigint &rhs)
 {
-    sign = rhs.sign;
-    digits = rhs.digits;
-    return *this;
+    sign = rhs.sign; // Copy the sign from the right-hand side (rhs)
+    digits = rhs.digits; // Copy the digits from rhs
+    return *this; // Return the current object for chaining assignments
 }
-// add: for addition of same sign. No modification to sign.
+
 bigint &bigint::add(const bigint &rhs)
 {
-    const vector<uint8_t> &digits_rhs = rhs.digits;
-    size_t len_l = digits.size();
-    size_t len_r = digits_rhs.size();
-    size_t i = 0;
-    bool carry = false;
+    const vector<uint8_t> &digits_rhs = rhs.digits; // Digits of the right-hand side bigint
+    size_t len_l = digits.size(); // Length of current bigint's digits
+    size_t len_r = digits_rhs.size(); // Length of rhs bigint's digits
+    size_t i = 0;   
+    bool carry = false; // To store carry-over during addition
+
+    // Add corresponding digits of both numbers and handle carry
     for (; i < std::min(len_l, len_r); i++)
     {
         uint8_t sum_new = digits[i] + digits_rhs[i] + carry;
-        digits[i] = sum_new % 10;
-        carry = (sum_new >= 10);
+        digits[i] = sum_new % 10; // Store the last digit of sum
+        carry = (sum_new >= 10); // Determine if there's a carry for next digits
     }
-    // the left over parts
+
+    // Handle remaining digits and carry for the larger number
     for (; i < len_l; i++)
     {
         uint8_t sum_new = digits[i] + carry;
@@ -296,238 +279,233 @@ bigint &bigint::add(const bigint &rhs)
         digits.push_back(sum_new % 10);
         carry = (sum_new >= 10);
     }
+
+    // Add a new digit if there's a carry left after processing all digits
     if (carry)
         digits.push_back(1);
     return *this;
 }
 
-// minus: for minus of two non-negative. Larger - smaller.
 bigint &bigint::minus(const bigint &rhs)
 {
     const vector<uint8_t> &digits_rhs = rhs.digits;
     size_t len_l = digits.size();
     size_t len_r = digits_rhs.size();
     size_t i = 0;
-    bool carry = false;
+    bool borrow = false; // To store borrow during subtraction
+
+    // Subtract corresponding digits of both numbers and handle borrow
     for (; i < std::min(len_l, len_r); i++)
     {
-        uint8_t sum_new = digits[i] + 10 - digits_rhs[i] - carry;
-        digits[i] = sum_new % 10;
-        carry = (sum_new < 10);
+        uint8_t sum_new = digits[i] + 10 - digits_rhs[i] - borrow;
+        digits[i] = sum_new % 10; // Store the last digit of sum
+        borrow = (sum_new < 10); // Determine if there's a borrow for next digits
     }
-    // the left over parts
+
+    // Handle remaining digits and borrow for the larger number
     for (; i < len_l; i++)
     {
-        uint8_t sum_new = digits[i] + 10 - carry;
+        uint8_t sum_new = digits[i] + 10 - borrow;
         digits[i] = sum_new % 10;
-        carry = (sum_new < 10);
+        borrow = (sum_new < 10);
     }
+
+    // Remove leading zeros after subtraction
     removeZeroAtStart();
     return *this;
 }
 
-bigint &bigint::operator+=(const bigint &rhs)
-{
-    if (sign * rhs.sign == 1)
-        return add(rhs);
-    else if (sign == 1)
-    {
-        if (*this >= -rhs)
-            return minus(-rhs);
-        else
-        {
-            bigint temp = -rhs;
-            temp.minus(*this);
-            *this = -temp;
-        }
-    }
-    else
-    {
-        if (-(*this) >= rhs)
-        {
-            bigint temp = -(*this);
-            temp.minus(rhs);
-            *this = -temp;
-        }
-        else
-        {
-            bigint temp = rhs;
-            temp.minus(-(*this));
-            *this = temp;
-        }
-    }
-    // if zero, set sign to 1
-    if (digits[0] == 0)
-        setSign(1);
-    return *this;
-}
 
-bigint &bigint::operator-=(const bigint &rhs)
-{
-    return *this += (-rhs);
-}
 
-bigint &bigint::operator*=(const bigint &rhs)
-{
-    if (rhs.sign == -1)
-        negate();
-    const vector<uint8_t> &digits_rhs = rhs.digits;
-    size_t len_l = digits.size();
-    size_t len_r = digits_rhs.size();
-    size_t i = 0;
-    uint8_t carry;
-    bigint digits_sum;
-    for (size_t i = 0; i < len_l; i++)
-    {
-        bigint product;
-        product.setDigits(vector<uint8_t>(i, 0));
-        carry = 0;
-        for (size_t j = 0; j < len_r; j++)
-        {
-            uint8_t product_digit = digits[i] * digits_rhs[j] + carry;
-            product.digits.push_back(product_digit % 10);
-            carry = product_digit / 10;
-        }
-        if (carry)
-            product.digits.push_back(carry);
-        digits_sum += product;
-    }
-    digits = digits_sum.digits;
-    return *this;
-}
 
 void bigint::removeZeroAtStart()
 {
-    while (digits.back() == 0)
+    // Removing zeros from the end of the vector until a non-zero digit is encountered
+    // or the vector becomes empty.
+    while (digits.back() == 0 && digits.size() > 1)
         digits.pop_back();
-    if (!digits.size())
+
+    // If all digits are zeros, ensure the bigint is set to zero (not an empty vector).
+    if (digits.empty())
         digits.push_back(0);
 }
 
+
 int8_t bigint::getSign() const
 {
-    return sign;
+    return sign; // Returns the sign of the bigint
 }
+
+
 vector<uint8_t> bigint::getDigits() const
 {
-    return digits;
+    return digits; // Returns a copy of the bigint's digits
 }
+
 
 void bigint::setDigits(const vector<uint8_t> &opr)
 {
-    digits = opr;
+    digits = opr; // Sets the bigint's digits to the provided vector
 }
+
+
 void bigint::setSign(const int8_t &new_sign)
 {
-    sign = new_sign;
+    sign = new_sign; // Sets the bigint's sign to the provided value
 }
+
+
 void bigint::negate()
 {
-    sign *= -1;
+    sign *= -1; // Flips the sign of the bigint
 }
+
 
 bigint operator-(const bigint &opr)
 {
-    bigint result = opr;
-    result.negate();
-    return result;
+    bigint result = opr; // Make a copy of the bigint
+    result.negate(); // Negate the copied bigint
+    return result; // Return the negated bigint
 }
+
+
 bigint operator+(bigint lhs, const bigint &rhs)
 {
-    return (lhs += rhs);
+    return lhs += rhs; // Use the compound addition-assignment operator
 }
+
+
 bigint operator-(bigint lhs, const bigint &rhs)
 {
-    return (lhs -= rhs);
+    return lhs -= rhs; // Use the compound subtraction-assignment operator
 }
+
+
 bigint operator*(bigint lhs, const bigint &rhs)
 {
-    return (lhs *= rhs);
+    return lhs *= rhs; // Use the compound multiplication-assignment operator
 }
+
 
 bool operator==(const bigint &lhs, const bigint &rhs)
 {
+    // First, compare the signs. If they are different, bigints are not equal.
+    // 0 always has sign value 1 (invariant)
     if (lhs.getSign() != rhs.getSign())
         return false;
+
+    // Then, compare the sizes of digit vectors.
     vector<uint8_t> digits_lhs = lhs.getDigits();
     vector<uint8_t> digits_rhs = rhs.getDigits();
-    size_t len_l = digits_lhs.size();
-    if (len_l != digits_rhs.size())
+    if (digits_lhs.size() != digits_rhs.size())
         return false;
-    size_t i;
-    for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++)
-        ;
-    return i == len_l;
+
+    // Finally, compare the digits.
+    for (size_t i = 0; i < digits_lhs.size(); i++)
+    {
+        if (digits_lhs[i] != digits_rhs[i])
+            return false;
+    }
+
+    // If all checks pass, the bigints are equal.
+    return true;
 }
+
 
 bool operator!=(const bigint &lhs, const bigint &rhs)
 {
-    return !(lhs == rhs);
+    return !(lhs == rhs); // Utilize the overloaded equality operator
 }
+
+
 bool operator<(const bigint &lhs, const bigint &rhs)
 {
+    // Negative numbers are smaller than positive numbers.
     if (lhs.getSign() < rhs.getSign())
         return true;
     if (lhs.getSign() > rhs.getSign())
         return false;
+
     vector<uint8_t> digits_lhs = lhs.getDigits();
     vector<uint8_t> digits_rhs = rhs.getDigits();
     size_t len_l = digits_lhs.size();
     size_t len_r = digits_rhs.size();
+    // isPos: now we are assured they have the same sign, record whether they are positive ot negative
     bool isPos = (lhs.getSign() == 1);
 
+    // For numbers with the same sign and number of digits, compare digit by digit.
     if (len_l == len_r)
     {
         size_t i;
+        // find the first different digit
         for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++);
-        if (i == len_l)
+        if (i == len_l) // All digits are the same, hence not less than.
             return false;
+        // For positive numbers, a smaller digit means smaller number and vice versa for negative numbers.
         return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
     }
+    // If the number of digits is different, the number with fewer digits is smaller for positive numbers and larger for negative numbers.
     bool isShorter = len_l < len_r;
     return (isShorter && isPos) || !(isShorter || isPos);
 }
+
+
 bool operator<=(const bigint &lhs, const bigint &rhs)
 {
+    // Negative numbers are smaller than positive numbers.
     if (lhs.getSign() < rhs.getSign())
         return true;
     if (lhs.getSign() > rhs.getSign())
         return false;
+
     vector<uint8_t> digits_lhs = lhs.getDigits();
     vector<uint8_t> digits_rhs = rhs.getDigits();
     size_t len_l = digits_lhs.size();
     size_t len_r = digits_rhs.size();
+    // isPos: now we are assured they have the same sign, record whether they are positive ot negative
     bool isPos = (lhs.getSign() == 1);
 
+    // For numbers with the same sign and number of digits, compare digit by digit.
     if (len_l == len_r)
     {
         size_t i;
+        // find the first different digit
         for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++);
-        if (i == len_l)
+        if (i == len_l) // All digits are the same, also meets condition.
             return true;
+        // For positive numbers, a smaller digit means smaller number and vice versa for negative numbers.
         return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
     }
+    // If the number of digits is different, the number with fewer digits is smaller for positive numbers and larger for negative numbers.
     bool isShorter = len_l < len_r;
     return (isShorter && isPos) || !(isShorter || isPos);
 }
+
+
 bool operator>(const bigint &lhs, const bigint &rhs)
 {
-    return !(lhs <= rhs);
+    return !(lhs <= rhs); // Utilizing the operator<= for comparison.
 }
+
+
 bool operator>=(const bigint &lhs, const bigint &rhs)
 {
-    return !(lhs < rhs);
+    return !(lhs < rhs); // Utilizing the operator< for comparison.
 }
+
 
 ostream &operator<<(ostream &out, const bigint &opr)
 {
     vector<uint8_t> digits = opr.getDigits();
+    // Outputting the sign if negative
     if (opr.getSign() == -1)
         out << '-';
     size_t len = digits.size();
-    // for (size_t i = 0; i < len; i++)
+
+    // Outputting each digit starting from the most significant one
     for (int64_t i = (len - 1); i >= 0; i--)
         out << static_cast<int64_t>(digits[i]);
-    out << '\n';
+
+    out << '\n'; // Newline after printing the bigint
     return out;
 }
