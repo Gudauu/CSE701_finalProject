@@ -212,21 +212,24 @@ bigint::bigint()
 
 bigint::bigint(int64_t number)
 {
-    int64_t new_sign = (number > 0) ? 1 : -1;
+    int64_t new_sign = (number >= 0) ? 1 : -1;
     setSign(new_sign);
+    if(!number) // if number is zero
+        setDigits({0});
     while (number)
     {
         digits.push_back(new_sign * (number % 10));
         number /= 10;
     }
+    
 }
 
 bigint::bigint(const string &str)
 {
     size_t len = str.size();
-    if (!len)
-    { // empty string
-        bigint();
+    if (!len || (len == 1 && str[0] == '0'))
+    { // empty string or zero string
+        setDigits({0});
         return;
     }
     // deal with first char separately due to possible sign and zero start
@@ -329,6 +332,101 @@ bigint &bigint::minus(const bigint &rhs)
 }
 
 
+bigint &bigint::operator+=(const bigint &rhs)
+{
+    // If both bigint have the same sign, directly add() them.
+    if (sign * rhs.sign == 1)
+        return add(rhs);
+
+    // current bigint is positive and rhs is negative
+    else if (sign == 1)
+    {
+        // If current bigint is larger than rhs, subtract abs(rhs) from it.
+        if (*this >= -rhs)
+            return minus(-rhs);
+        else
+        {
+            // If rhs is larger, subtract current bigint from rhs and negate the result.
+            bigint temp = -rhs;
+            temp.minus(*this);
+            *this = -temp;
+        }
+    }
+    else // If the current bigint is negative and rhs is positive
+    {
+        // If the abs(current bigint) is larger than rhs, subtract rhs from it and negate the result.
+        if (-(*this) >= rhs)
+        {
+            bigint temp = -(*this);
+            temp.minus(rhs);
+            *this = -temp;
+        }
+        else
+        {
+            // If rhs is larger, subtract the absolute value of current bigint from rhs.
+            bigint temp = rhs;
+            temp.minus(-(*this));
+            *this = temp;
+        }
+    }
+    // If the result is zero, set the sign to positive.
+    if (digits[0] == 0)
+        setSign(1);
+    return *this;
+}
+
+
+bigint &bigint::operator-=(const bigint &rhs)
+{
+    // Utilize the += operator for subtraction by negating rhs.
+    return *this += (-rhs);
+}
+
+
+
+bigint &bigint::operator*=(const bigint &rhs)
+{
+    // Negate the current bigint if rhs is negative.
+    if (rhs.sign == -1)
+        negate();
+
+    const vector<uint8_t> &digits_rhs = rhs.digits; // Digits of the right-hand side bigint.
+    size_t len_l = digits.size(); // Length of current bigint's digits.
+    size_t len_r = digits_rhs.size(); // Length of rhs bigint's digits.
+    uint8_t carry;      // To store carry-over during multiplication
+    bigint digits_sum;  // To store the sum of the products.
+
+    // Iterate over each digit of the current bigint.
+    for (size_t i = 0; i < len_l; i++)
+    {
+        bigint product; // To store the product of a single digit multiplication.
+        product.setDigits(vector<uint8_t>(i, 0)); // Add zeros for lower positions, equivalent to shifting in base 10.
+
+        carry = 0; 
+        // Multiply the current digit with each digit of rhs bigint.
+        for (size_t j = 0; j < len_r; j++)
+        {
+            uint8_t product_digit = digits[i] * digits_rhs[j] + carry;
+            product.digits.push_back(product_digit % 10); // Store the last digit of the product.
+            carry = product_digit / 10; // Carry for the next digit.
+        }
+
+        // Add remaining carry if present.
+        if (carry)
+            product.digits.push_back(carry);
+
+        // Add the product to the total sum.
+        digits_sum += product;
+    }
+
+    // Replace the current bigint's digits with the sum's digits.
+    digits = digits_sum.digits;
+    return *this;
+}
+
+
+
+
 
 
 void bigint::removeZeroAtStart()
@@ -370,7 +468,8 @@ void bigint::setSign(const int8_t &new_sign)
 
 void bigint::negate()
 {
-    sign *= -1; // Flips the sign of the bigint
+    if(digits[0] != 0)
+        sign *= -1; // Flips the sign of the bigint unless it's 0 (invariable)
 }
 
 

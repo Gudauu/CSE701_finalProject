@@ -62,7 +62,29 @@ int main()
     cout << "A - B: " << (A - B);
     cout << "A *= B: " << (A *= B);
     cout << "A * B: " << (A * B);
-    cout << "B = A: " << (B = A) << '\n';
+    cout << "B = A: " << (B = A);
+    cout << "A == B: " << (A == B) << '\n';
+    cout << "A != B: " << (A != B) << '\n';
+    cout << "A > B: " << (A > B) << '\n';
+    cout << "A < B: " << (A < B) << '\n';
+    cout << "A == -B: " << (A == -B) << '\n';
+    cout << "A <= -B: " << (A <= -B) << '\n';
+    cout << "A >= -B: " << (A >= -B) << "\n\n";
+    try{
+        A = bigint(12);
+        B = bigint("-112");
+    }
+    catch (invalid_argument e)
+    {
+        cout << e.what() << '\n';
+    }
+    
+    cout << "A += B: " << (A += B);
+    cout << "A -= B: " << (A -= B);
+    cout << "A + B: " << (A + B);
+    cout << "A - B: " << (A - B);
+    cout << "A *= B: " << (A *= B);
+    cout << "A * B: " << (A * B);
     cout << "A == B: " << (A == B) << '\n';
     cout << "A != B: " << (A != B) << '\n';
     cout << "A > B: " << (A > B) << '\n';
