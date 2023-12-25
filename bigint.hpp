@@ -421,6 +421,7 @@ bigint &bigint::operator*=(const bigint &rhs)
 
     // Replace the current bigint's digits with the sum's digits.
     digits = digits_sum.digits;
+    removeZeroAtStart();
     return *this;
 }
 
@@ -548,10 +549,10 @@ bool operator<(const bigint &lhs, const bigint &rhs)
     // For numbers with the same sign and number of digits, compare digit by digit.
     if (len_l == len_r)
     {
-        size_t i;
+        int64_t i;
         // find the first different digit
-        for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++);
-        if (i == len_l) // All digits are the same, hence not less than.
+        for (i = len_l - 1; i >= 0  && digits_lhs[i] == digits_rhs[i]; i--);
+        if (i < 0) // All digits are the same, hence not less than.
             return false;
         // For positive numbers, a smaller digit means smaller number and vice versa for negative numbers.
         return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
@@ -580,10 +581,10 @@ bool operator<=(const bigint &lhs, const bigint &rhs)
     // For numbers with the same sign and number of digits, compare digit by digit.
     if (len_l == len_r)
     {
-        size_t i;
+        int64_t i;
         // find the first different digit
-        for (i = 0; i < len_l && digits_lhs[i] == digits_rhs[i]; i++);
-        if (i == len_l) // All digits are the same, also meets condition.
+        for (i = len_l - 1; i >= 0 && digits_lhs[i] == digits_rhs[i]; i--);
+        if (i < 0) // All digits are the same, also meets condition.
             return true;
         // For positive numbers, a smaller digit means smaller number and vice versa for negative numbers.
         return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
