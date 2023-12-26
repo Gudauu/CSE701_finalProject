@@ -73,11 +73,19 @@ public:
      */
     bigint(const string &str);
 
+    /**
+     * @brief Copy constructor
+     * @param rhs 
+     */
+    bigint(const bigint &rhs);
+
+
     /** @brief Assigns a bigint to the current bigint.
      *  @param rhs The bigint to assign from.
      *  @return Reference to the current bigint after assignment.
      */
     bigint &operator=(const bigint &rhs);
+
 
     /** @brief Adds a bigint to the current bigint.
      *  @param rhs The bigint to add.
@@ -212,13 +220,13 @@ bigint::bigint()
 
 bigint::bigint(int64_t number)
 {
-    int64_t new_sign = (number >= 0) ? 1 : -1;
+    int8_t new_sign = (number >= 0) ? 1 : -1;
     setSign(new_sign);
     if(!number) // if number is zero
         setDigits({0});
     while (number)
     {
-        digits.push_back(new_sign * (number % 10));
+        digits.push_back(uint8_t(new_sign * int8_t(number % 10)));
         number /= 10;
     }
     
@@ -252,12 +260,16 @@ bigint::bigint(const string &str)
         if (ch < '0' || ch > '9')
             throw invalid_initializing_string;
         else
-            digits_new.push_back(ch - '0');
+            digits_new.push_back(uint8_t(ch - '0'));
     }
     std::reverse(digits_new.begin(), digits_new.end());
     setDigits(digits_new);
 }
 
+bigint::bigint(const bigint &rhs)
+{
+    *this = rhs;
+}
 
 bigint &bigint::operator=(const bigint &rhs)
 {
@@ -272,12 +284,12 @@ bigint &bigint::add(const bigint &rhs)
     size_t len_l = digits.size(); // Length of current bigint's digits
     size_t len_r = digits_rhs.size(); // Length of rhs bigint's digits
     size_t i = 0;   
-    bool carry = false; // To store carry-over during addition
+    uint8_t carry = false; // To store carry-over during addition
 
     // Add corresponding digits of both numbers and handle carry
     for (; i < std::min(len_l, len_r); i++)
     {
-        uint8_t sum_new = digits[i] + digits_rhs[i] + carry;
+        uint8_t sum_new = uint8_t(digits[i] + digits_rhs[i] + carry);
         digits[i] = sum_new % 10; // Store the last digit of sum
         carry = (sum_new >= 10); // Determine if there's a carry for next digits
     }
@@ -291,7 +303,7 @@ bigint &bigint::add(const bigint &rhs)
     }
     for (; i < len_r; i++)
     {
-        uint8_t sum_new = digits_rhs[i] + carry;
+        uint8_t sum_new = uint8_t(digits_rhs[i] + carry);
         digits.push_back(sum_new % 10);
         carry = (sum_new >= 10);
     }
@@ -308,12 +320,12 @@ bigint &bigint::minus(const bigint &rhs)
     size_t len_l = digits.size();
     size_t len_r = digits_rhs.size();
     size_t i = 0;
-    bool borrow = false; // To store borrow during subtraction
+    uint8_t borrow = false; // To store borrow during subtraction
 
     // Subtract corresponding digits of both numbers and handle borrow
     for (; i < std::min(len_l, len_r); i++)
     {
-        uint8_t sum_new = digits[i] + 10 - digits_rhs[i] - borrow;
+        uint8_t sum_new = uint8_t(digits[i] + 10 - digits_rhs[i] - borrow);
         digits[i] = sum_new % 10; // Store the last digit of sum
         borrow = (sum_new < 10); // Determine if there's a borrow for next digits
     }
@@ -321,7 +333,7 @@ bigint &bigint::minus(const bigint &rhs)
     // Handle remaining digits and borrow for the larger number
     for (; i < len_l; i++)
     {
-        uint8_t sum_new = digits[i] + 10 - borrow;
+        uint8_t sum_new = uint8_t(digits[i] + 10 - borrow);
         digits[i] = sum_new % 10;
         borrow = (sum_new < 10);
     }
@@ -406,7 +418,7 @@ bigint &bigint::operator*=(const bigint &rhs)
         // Multiply the current digit with each digit of rhs bigint.
         for (size_t j = 0; j < len_r; j++)
         {
-            uint8_t product_digit = digits[i] * digits_rhs[j] + carry;
+            uint8_t product_digit = uint8_t(digits[i] * digits_rhs[j] + carry);
             product.digits.push_back(product_digit % 10); // Store the last digit of the product.
             carry = product_digit / 10; // Carry for the next digit.
         }
@@ -551,11 +563,11 @@ bool operator<(const bigint &lhs, const bigint &rhs)
     {
         int64_t i;
         // find the first different digit
-        for (i = len_l - 1; i >= 0  && digits_lhs[i] == digits_rhs[i]; i--);
+        for (i = int64_t(len_l - 1); i >= 0  && digits_lhs[uint8_t(i)] == digits_rhs[uint8_t(i)]; i--);
         if (i < 0) // All digits are the same, hence not less than.
             return false;
         // For positive numbers, a smaller digit means smaller number and vice versa for negative numbers.
-        return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
+        return (isPos && digits_lhs[uint8_t(i)] < digits_rhs[uint8_t(i)]) || (!isPos && digits_lhs[uint8_t(i)] > digits_rhs[uint8_t(i)]);
     }
     // If the number of digits is different, the number with fewer digits is smaller for positive numbers and larger for negative numbers.
     bool isShorter = len_l < len_r;
@@ -583,11 +595,11 @@ bool operator<=(const bigint &lhs, const bigint &rhs)
     {
         int64_t i;
         // find the first different digit
-        for (i = len_l - 1; i >= 0 && digits_lhs[i] == digits_rhs[i]; i--);
+        for (i = int64_t(len_l - 1); i >= 0 && digits_lhs[uint8_t(i)] == digits_rhs[uint8_t(i)]; i--);
         if (i < 0) // All digits are the same, also meets condition.
             return true;
         // For positive numbers, a smaller digit means smaller number and vice versa for negative numbers.
-        return (isPos && digits_lhs[i] < digits_rhs[i]) || (!isPos && digits_lhs[i] > digits_rhs[i]);
+        return (isPos && digits_lhs[uint8_t(i)] < digits_rhs[uint8_t(i)]) || (!isPos && digits_lhs[uint8_t(i)] > digits_rhs[uint8_t(i)]);
     }
     // If the number of digits is different, the number with fewer digits is smaller for positive numbers and larger for negative numbers.
     bool isShorter = len_l < len_r;
@@ -616,8 +628,8 @@ ostream &operator<<(ostream &out, const bigint &opr)
     size_t len = digits.size();
 
     // Outputting each digit starting from the most significant one
-    for (int64_t i = (len - 1); i >= 0; i--)
-        out << static_cast<int64_t>(digits[i]);
+    for (int64_t i = int64_t(len - 1); i >= 0; i--)
+        out << static_cast<int64_t>(digits[uint8_t(i)]);
 
     out << '\n'; // Newline after printing the bigint
     return out;
