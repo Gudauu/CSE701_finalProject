@@ -631,6 +631,6 @@ ostream &operator<<(ostream &out, const bigint &opr)
     for (int64_t i = int64_t(len - 1); i >= 0; i--)
         out << static_cast<int64_t>(digits[uint8_t(i)]);
 
-    out << '\n'; // Newline after printing the bigint
+    // out << '\n'; // Newline after printing the bigint
     return out;
 }
